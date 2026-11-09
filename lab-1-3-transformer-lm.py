@@ -210,8 +210,12 @@ class PositionalEmbedding(nn.Module):
 
 def causal_mask(seq_len: int, device: torch.device | str) -> torch.Tensor:
     """Return a mask where position i can attend to positions j <= i."""
-    # Copy your implementation of causal_mask from lab-1-2.
-    raise NotImplementedError("Copy causal_mask from lab-1-2")
+    mask = torch.full((seq_len, seq_len), False).to(device)
+    for i in range(seq_len):
+        for j in range(seq_len):
+            if j <= i:
+                mask[i, j] = True
+    return mask
 
 
 def batched_causal_mask(input_ids: torch.Tensor) -> torch.Tensor:
@@ -242,10 +246,16 @@ def attention(
     if mask is not None:
         assert mask.shape == torch.Size([batch_size, query_len, key_len])
 
-    # Copy your implementation of attention from lab-1-2.
-    raise NotImplementedError("Copy attention from lab-1-2")
+
+    attn = batched_Q @ batched_K.transpose(-1, -2) / math.sqrt(hidden_size)
+    if mask is not None:
+        attn = attn.masked_fill(~mask, float('-inf'))
+
+    batched_A = torch.softmax(attn, dim=-1)
+    batched_C = batched_A @ batched_V
 
     return batched_A, batched_C
+
 
 
 class TransformerLM(nn.Module):
