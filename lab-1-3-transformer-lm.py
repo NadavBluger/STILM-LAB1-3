@@ -23,6 +23,7 @@ from typing import Optional, Protocol
 import torch
 import torch.nn.functional as F
 from datasets import load_dataset
+from sympy.codegen import Print
 from tokenizers import Tokenizer as HFTokenizer
 from tokenizers.decoders import ByteLevel as ByteLevelDecoder
 from tokenizers.models import BPE
@@ -292,15 +293,14 @@ class TransformerLM(nn.Module):
             embedding_size == hidden_size
         ), "Residual connections require matching sizes."
 
-        # TODO COMPLETE (2)
         self.embed = PositionalEmbedding(vocab_size, embedding_size, max_len)
         self.q_proj = nn.Linear(embedding_size, hidden_size, bias=True)
         self.k_proj = nn.Linear(embedding_size, hidden_size, bias=True)
         self.v_proj = nn.Linear(embedding_size, hidden_size, bias=True)
         self.mlp = nn.Sequential(
-            nn.Linear(embedding_size, 2*embedding_size, bias=True),
+            nn.Linear(embedding_size, 4*embedding_size, bias=True),
             nn.ReLU(),
-            nn.Linear(2*embedding_size, embedding_size, bias=True),
+            nn.Linear(4*embedding_size, embedding_size, bias=True),
         )
         self.norm1 = nn.LayerNorm(embedding_size)
         self.norm2 = nn.LayerNorm(embedding_size)
@@ -323,8 +323,15 @@ class TransformerLM(nn.Module):
             for input_ids of shape (2, 5) and a vocabulary of 100 tokens,
             returns a tensor of shape (2, 5, 100).
         """
-        # TODO COMPLETE (2)
-        raise NotImplementedError("TODO 2")
+        X = self.embed(input_ids)
+        Q = self.q_proj(X)
+        K = self.k_proj(X)
+        V = self.v_proj(X)
+        _, A = attention(Q, K, V, batched_causal_mask(input_ids))
+        H = self.norm1(X+A)
+        MLPH = self.mlp(H)
+        Y = self.norm2(H + MLPH)
+        return self.hidden2output(Y)
 
 
 class TransformerBlock(nn.Module):
