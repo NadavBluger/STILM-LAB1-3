@@ -298,9 +298,9 @@ class TransformerLM(nn.Module):
         self.k_proj = nn.Linear(embedding_size, hidden_size, bias=True)
         self.v_proj = nn.Linear(embedding_size, hidden_size, bias=True)
         self.mlp = nn.Sequential(
-            nn.Linear(embedding_size, 4*embedding_size, bias=True),
+            nn.Linear(embedding_size, embedding_size, bias=True),
             nn.ReLU(),
-            nn.Linear(4*embedding_size, embedding_size, bias=True),
+            nn.Linear(embedding_size, embedding_size, bias=True),
         )
         self.norm1 = nn.LayerNorm(embedding_size)
         self.norm2 = nn.LayerNorm(embedding_size)
