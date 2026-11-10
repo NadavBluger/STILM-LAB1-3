@@ -190,6 +190,8 @@ How does the multi-head model compare to the multilayer model with the same numb
 **Question:** Which advantage is there for a multi-head attention mechanism compared to a single-head attention mechanism?
 
 **Answer:**
+Each head, having a different initialization also as a result learns something different.
+This means each head captures a different underlying "connection" between token (grammar, location in sentence, semantic context, some other less well defined connection, ...)
 
 
 ### TODO 9: Getting the best model you can
@@ -203,7 +205,26 @@ Note that some settings are exposed as command line flags, and the rest are fiel
 **Question:** List a few hyperparameter changes which you believe will yield better results. For each one, list the change, hypothesized effect, measured results, and explain the finding. 
 
 **Answer:**
+0. Base (2 layers, 4 heads default embedding and hidden dimensions)
+valid loss 3.398, valid ppl 29.9; shuffled-target loss 9.366, shuffled-target ppl 11687.8
 
+1. 4 layers instead of 2
+More layers should result in better learning so we expect lower perplexity
+We got the following results
+valid loss 3.142, valid ppl 23.1; shuffled-target loss 9.716, shuffled-target ppl 16578.0
+So like we expected we got lower ppl as a result of the added layers.
+
+2. 8 head instead of 4
+More heads should also lower the ppl but not as much as increasing the layers amount (since deep nets are exponentially better then flat net with the same parameter count, more heads are not so we expect a weaker result)
+We got the following results
+valid loss 3.376, valid ppl 29.3; shuffled-target loss 9.476, shuffled-target ppl 13042.3
+So our expectation came to pass. Indeed the added head helped capture more meaning but the added meaning helped the results less than adding more layers
+
+3. 4 layers instead of 2 & 8 head instead of 4
+The combined improvement should be better than any one separately since each improves the results in "a different way"
+We got the following results
+valid loss 3.109, valid ppl 22.4; shuffled-target loss 9.823, shuffled-target ppl 18445.0
+Once again our prediction came true (also the text we got was more coherent). The low valid ppl and high shuffled-target ppl are a good indication for the quality of the model
 
 ## Lab debrief
 **Question:** We're interested in any thoughts you have about this lab so that we can improve this lab for later years, and to inform later labs for this year. Please list any issues that arose or comments you have to improve the lab. Useful things to comment on include the following, but you're not restricted to these:
@@ -212,7 +233,9 @@ Note that some settings are exposed as command line flags, and the rest are fiel
 * Was it clear (at least after you completed the lab) what the points of the exercises were?
 
 **Answer:**
-
+This lab took 2.5 hours, much more manageable than the last 2
+Instructions were not always clear for the split head task, a hint about which function may be handy would have benn greatly appreciated
+The point of the lab was clear
 ## Submission
 Collect all of the files in the given directory into a **flat** zip file (**NO** internal directories) and submit it for grading via Gradescope.
 

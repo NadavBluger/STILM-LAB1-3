@@ -523,7 +523,7 @@ class MultiHeadAttention(nn.Module):
 
         attn = q @ k.transpose(-1, -2) / math.sqrt(self.head_size)
         if mask is not None:
-            attn = attn.masked_fill(~mask, float('-inf'))
+            attn = attn.masked_fill(~mask.unsqueeze(1), float('-inf'))
 
         scores = attn
         attention_weights = torch.softmax(scores, dim=-1)
