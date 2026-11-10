@@ -356,13 +356,16 @@ class TransformerBlock(nn.Module):
             norm1, norm2: two separate layer normalizations over hidden_size.
         """
         super().__init__()
-        # TODO COMPLETE (3)
-        self.q_proj = ...
-        self.k_proj = ...
-        self.v_proj = ...
-        self.mlp = ...
-        self.norm1 = ...
-        self.norm2 = ...
+        self.q_proj = nn.Linear(hidden_size, hidden_size, bias=True)
+        self.k_proj = nn.Linear(hidden_size, hidden_size, bias=True)
+        self.v_proj = nn.Linear(hidden_size, hidden_size, bias=True)
+        self.mlp = nn.Sequential(
+            nn.Linear(hidden_size, hidden_size, bias=True),
+            nn.ReLU(),
+            nn.Linear(hidden_size, hidden_size, bias=True),
+        )
+        self.norm1 = nn.LayerNorm(hidden_size)
+        self.norm2 = nn.LayerNorm(hidden_size)
 
     def forward(self, x: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
         """Run one Transformer block over a sequence of hidden vectors.
@@ -382,8 +385,14 @@ class TransformerBlock(nn.Module):
             for x of shape (2, 5, 16) and a mask of shape (2, 5, 5), returns a
             tensor of shape (2, 5, 16).
         """
-        # TODO COMPLETE (3)
-        raise NotImplementedError("TODO 3")
+        Q = self.q_proj(x)
+        K = self.k_proj(x)
+        V = self.v_proj(x)
+        _, A = attention(Q, K, V, mask)
+        H = self.norm1(x + A)
+        MLPH = self.mlp(H)
+        Y = self.norm2(H + MLPH)
+        return Y
 
 
 class MultiLayerTransformerLM(nn.Module):
