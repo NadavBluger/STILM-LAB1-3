@@ -434,8 +434,10 @@ class MultiLayerTransformerLM(nn.Module):
             for input_ids of shape (2, 5) and a vocabulary of 100 tokens,
             returns a tensor of shape (2, 5, 100).
         """
-        # TODO COMPLETE (4)
-        raise NotImplementedError("TODO 4")
+        embbedings = self.embed(input_ids)
+        mask = batched_causal_mask(input_ids)
+        proccesed = self.blocks(embbedings, mask)
+        return self.hidden2output(proccesed)
 
 
 class MultiHeadAttention(nn.Module):
