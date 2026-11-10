@@ -614,8 +614,12 @@ class MultiHeadTransformerLM(nn.Module):
             for input_ids of shape (2, 5) and a vocabulary of 100 tokens,
             returns a tensor of shape (2, 5, 100).
         """
-        # TODO COMPLETE (7)
-        raise NotImplementedError("TODO 7")
+        embbedings = self.embed(input_ids)
+        mask = batched_causal_mask(input_ids)
+        proccesed  = embbedings
+        for block in self.blocks:
+            proccesed = block(proccesed, mask)
+        return self.hidden2output(proccesed)
 
 
 def build_model(config: Config, vocab_size: int) -> nn.Module:
