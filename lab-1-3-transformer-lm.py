@@ -468,14 +468,14 @@ class MultiHeadAttention(nn.Module):
         super().__init__()
         assert hidden_size % num_heads == 0
         # TODO COMPLETE (5)
-        self.hidden_size = ...
-        self.num_heads = ...
-        self.head_size = ...
+        self.hidden_size = hidden_size
+        self.num_heads = num_heads
+        self.head_size = hidden_size // num_heads
 
-        self.q_proj = ...
-        self.k_proj = ...
-        self.v_proj = ...
-        self.output_proj = ...
+        self.q_proj = nn.Linear(self.hidden_size, self.hidden_size, bias=True)
+        self.k_proj = nn.Linear(self.hidden_size, self.hidden_size, bias=True)
+        self.v_proj = nn.Linear(self.hidden_size, self.hidden_size, bias=True)
+        self.output_proj = nn.Linear(self.hidden_size, self.hidden_size, bias=True)
 
     def split_heads(self, x: torch.Tensor) -> torch.Tensor:
         """Give every head its own slice of each hidden vector.
@@ -493,8 +493,10 @@ class MultiHeadAttention(nn.Module):
                                                [5., 6., 7., 8.]]] ->
                 [[[[1., 2.], [5., 6.]], [[3., 4.], [7., 8.]]]]
         """
-        # TODO COMPLETE (5)
-        raise NotImplementedError("TODO 5")
+
+        splitted = x.unflatten(2, (self.num_heads, self.head_size))
+        splitted = splitted.transpose(1, 2)
+        return splitted
 
     def combine_heads(self, x: torch.Tensor) -> torch.Tensor:
         """Concatenate the heads of each position back into one hidden vector.
@@ -510,8 +512,9 @@ class MultiHeadAttention(nn.Module):
         Example:
             combine_heads(split_heads(x)) equals x.
         """
-        # TODO COMPLETE (5)
-        raise NotImplementedError("TODO 5")
+        combined = x.transpose(2, 1)
+        combined = combined.flatten(2, 3)
+        return combined
 
     def forward(self, x: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
         q = self.split_heads(self.q_proj(x))
@@ -519,9 +522,14 @@ class MultiHeadAttention(nn.Module):
         v = self.split_heads(self.v_proj(x))
 
         # TODO COMPLETE (5)
-        scores = ...
-        attention_weights = ...
-        context = ...
+
+        attn = q @ k.transpose(-1, -2) / math.sqrt(self.head_size)
+        if mask is not None:
+            attn = attn.masked_fill(~mask, float('-inf'))
+
+        scores = attn
+        attention_weights = torch.softmax(scores, dim=-1)
+        context = attention_weights @ v
 
         context = self.combine_heads(context)
         return self.output_proj(context)
