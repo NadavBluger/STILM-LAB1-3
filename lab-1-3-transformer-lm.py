@@ -521,8 +521,6 @@ class MultiHeadAttention(nn.Module):
         k = self.split_heads(self.k_proj(x))
         v = self.split_heads(self.v_proj(x))
 
-        # TODO COMPLETE (5)
-
         attn = q @ k.transpose(-1, -2) / math.sqrt(self.head_size)
         if mask is not None:
             attn = attn.masked_fill(~mask, float('-inf'))
@@ -566,8 +564,11 @@ class MultiHeadTransformerBlock(nn.Module):
             for x of shape (2, 5, 16) and a mask of shape (2, 5, 5), returns a
             tensor of shape (2, 5, 16).
         """
-        # TODO COMPLETE (6)
-        raise NotImplementedError("TODO 6")
+        A = self.attention(x, mask)
+        H = self.norm1(x + A)
+        MLPH = self.mlp(H)
+        Y = self.norm2(H + MLPH)
+        return Y
 
 
 class MultiHeadTransformerLM(nn.Module):
