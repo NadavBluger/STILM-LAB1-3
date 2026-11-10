@@ -436,7 +436,9 @@ class MultiLayerTransformerLM(nn.Module):
         """
         embbedings = self.embed(input_ids)
         mask = batched_causal_mask(input_ids)
-        proccesed = self.blocks(embbedings, mask)
+        proccesed  = embbedings
+        for block in self.blocks:
+            proccesed = block(proccesed, mask)
         return self.hidden2output(proccesed)
 
 
